@@ -1,0 +1,227 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"name":"csharp"}]}}
+
+#!markdown
+
+# PowerShell ScottPlot
+
+https://github.com/dfinke/PowerShellScottPlot
+
+#!pwsh
+
+. .\ScottPlotHelper.ps1
+
+#!markdown
+
+## Create three ScottPlot charts
+- Bubble chart
+- Scatter chart
+- Bar chart
+
+#!pwsh
+
+[double[]] $dataX = 1, 2, 3, 4, 5
+[double[]] $dataY = 1, 4, 9, 16, 25 
+
+'AddBubblePlot', 'AddScatter', 'AddBar' | ForEach-Object {
+    $plt = [ScottPlot.Plot]::new(400, 300)
+    [Void] $plt.$_($dataX, $dataY)
+
+    Show-ScottPlotInNotebook $plt "$pwd\$_.png"
+}
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+[double[]] $values = 778, 283, 184, 76, 43
+[void]$plt.AddPie($values)
+
+Show-ScottPlotInNotebook $plt "PieChart.png"
+
+#!markdown
+
+## Exploded Pie Chart
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+[double[]] $values = 778, 283, 184, 76, 43
+$pie = $plt.AddPie($values)
+$pie.Explode = $true
+
+Show-ScottPlotInNotebook $plt "PieChart.png"
+
+#!markdown
+
+## Signal Chart
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+[double[]] $values = [ScottPlot.DataGen]::RandomWalk(1000000)
+[void]$plt.AddSignal($values, 48000)
+$plt.Title("One Million Points", $false, 'Black', $null, 'Arial')
+
+Show-ScottPlotInNotebook $plt "quickstart_signal.png"
+
+#!markdown
+
+## Scatter Chart
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+# sample data
+[double[]] $xs = [ScottPlot.DataGen]::Consecutive(51)
+[double[]] $sin = [ScottPlot.DataGen]::Sin(51)
+[double[]] $cos = [ScottPlot.DataGen]::Cos(51)
+
+[void]$plt.AddScatter($xs, $sin)
+[void]$plt.AddScatter($xs, $cos)
+
+$plt.Title("Scatter Plot", $false, 'Black', $null, 'Arial')
+$plt.XLabel("Horizontal Axis")
+$plt.YLabel("Vertical Axis")
+
+Show-ScottPlotInNotebook $plt "quickstart_scatter.png"
+
+#!markdown
+
+## Coxcomb Chart
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+[double[]] $values = 11, 16, 7, 3, 14
+$coxcomb = $plt.AddCoxcomb($values)
+$coxcomb.FillColors = $plt.Palette.GetColors(5, 0, .5);
+$coxcomb.SliceLabels = "bikes", "blimps", "subs", "saucers", "rockets"
+
+Show-ScottPlotInNotebook $plt "quickstart_coxcomb.png"
+
+#!markdown
+
+## Polygons Chart
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+[double[]] $xs1 =  2, 8, 6, 4
+[double[]] $ys1 =  3, 4, 0.5, 1
+[void]$plt.AddPolygon($xs1, $ys1);
+
+[double[]] $xs2 =  3, 2.5, 5
+[double[]] $ys2 =  4.5, 1.5, 2.5
+[void]$plt.AddPolygon($xs2, $ys2, $plt.GetNextColor(.5), 2)
+
+Show-ScottPlotInNotebook $plt "quickstart_polygon.png"
+
+#!markdown
+
+## Radial Chart
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+[double[]] $values = 100, 80, 65, 45, 20
+[void]$plt.AddRadialGauge($values)
+
+Show-ScottPlotInNotebook $plt "radialgauge_quickstart.png"
+
+#!markdown
+
+## Text Chart
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+$pointCount = 51
+[double[]] $x = [ScottPlot.DataGen]::Consecutive($pointCount)
+[double[]] $sin = [ScottPlot.DataGen]::Sin($pointCount)
+[double[]] $cos = [ScottPlot.DataGen]::Cos($pointCount)
+
+[void]$plt.AddScatter($x, $sin)
+[void]$plt.AddScatter($x, $cos)
+
+[void]$plt.AddText("sample text", 10, .5, 16, 'Blue')
+
+Show-ScottPlotInNotebook $plt "text_quickstart.png"
+
+#!markdown
+
+# Histogram
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+$rand = [System.Random]::new(0)
+$values = [ScottPlot.DataGen]::RandomNormal($rand, 1234, 178.4, 7.6)
+
+# create a histogram
+$min = 140
+$histogram = [ScottPlot.Statistics.Common]::Histogram($values, $min, 220, 1)
+$counts = $histogram.Item1
+$leftEdges = $histogram.Item2
+$leftEdges=$leftEdges[1..($leftEdges.count - 1)]
+
+
+$bar = $plt.AddBar($counts, $leftEdges, [System.Drawing.Color]::Blue)
+$bar.BarWidth = 1
+
+# # customize the plot style
+[void]$plt.YAxis.Label("Count (#)")
+[void]$plt.XAxis.Label("Height (cm)")
+[void]$plt.SetAxisLimits($min)
+
+Show-ScottPlotInNotebook $plt "stats_histogram.png"
+
+#!markdown
+
+# Grouping
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+$groupCount = 5
+$rand = [System.Random]::new(0)
+$values1 = [ScottPlot.DataGen]::RandomNormal($rand, $groupCount, 20, 5)
+$values2 = [ScottPlot.DataGen]::RandomNormal($rand, $groupCount, 20, 5)
+$values3 = [ScottPlot.DataGen]::RandomNormal($rand, $groupCount, 20, 5)
+$errors1 = [ScottPlot.DataGen]::RandomNormal($rand, $groupCount, 5, 2)
+$errors2 = [ScottPlot.DataGen]::RandomNormal($rand, $groupCount, 5, 2)
+$errors3 = [ScottPlot.DataGen]::RandomNormal($rand, $groupCount, 5, 2)
+
+$groupNames =  "Group A", "Group B", "Group C", "Group D", "Group E" 
+$seriesNames =  "Series 1", "Series 2", "Series 3" 
+$valuesBySeries =  $values1, $values2, $values3 
+$errorsBySeries =  $errors1, $errors2, $errors3 
+[void]$plt.AddBarGroups($groupNames, $seriesNames, $valuesBySeries, $errorsBySeries);
+[void]$plt.Legend($true, [ScottPlot.Alignment]::UpperRight)
+
+Show-ScottPlotInNotebook $plt "bar_group.png"
+
+#!markdown
+
+## Frameless Plot
+
+#!pwsh
+
+$plt = [ScottPlot.Plot]::new(600, 400)
+
+$n=51
+[void]$plt.AddSignal([ScottPlot.DataGen]::Sin($n))
+[void]$plt.AddSignal([ScottPlot.DataGen]::Cos($n))
+# $plt.Style(figureBackground: Color.SkyBlue)
+
+[void]$plt.Frameless()
+
+Show-ScottPlotInNotebook $plt "layout_frameless.png"
